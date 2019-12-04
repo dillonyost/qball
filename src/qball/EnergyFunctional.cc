@@ -992,6 +992,9 @@ void EnergyFunctional::update_vhxc(void) {
     
   }
   
+  if ( el_enth_ )
+       el_enth_->update();
+  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
