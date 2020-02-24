@@ -543,22 +543,46 @@ int jade(int maxsweep, double tol, vector<DoubleMatrix*> a,
   // may end up anywhere in the array after all rotations are completed.
   // The array a_aux may contain a (non-dummy) vector.
 
-  if ( nloc_odd )
+  // rotate columns of a and u to restore original order
+  double *tmpmat = new double[nloc*mloc];
+  // rotate columns of a
+  for ( int k = 0; k < a.size(); k++ )
   {
-    // find position of the dummy vector and copy a_aux onto it
-    int idum = 0;
-    while ( jglobal[idum] != -1 && idum < 2*nploc ) idum++;
-    //cout << ctxt.mype() << ": idum=" << idum << endl;
-    if ( idum != 2*nploc-1 )
+    for ( int ipair = 0; ipair < nploc; ipair++ )
     {
-      for ( int k = 0; k < a.size(); k++ )
+      // copy columns of a[k] to temporary array tmpmat in original order
+      if ( jglobal[top[ipair]] >= 0 )
       {
-        memcpy(acol[k][idum],&a_aux[k][0],mloc*sizeof(double));
+        memcpy(&tmpmat[ipair*mloc], acol[k][top[ipair]], mloc*sizeof(double));
       }
-      memcpy(ucol[idum],&u_aux[0],mloc*sizeof(double));
+      if ( jglobal[bot[nploc-ipair-1]] >= 0 )
+      {
+        memcpy(&tmpmat[(nploc+ipair)*mloc],acol[k][bot[nploc-ipair-1]],
+               mloc*sizeof(double));
+      }
     }
+    // copy tmpmat back to a[k]
+    memcpy(acol[k][0],tmpmat,nloc*mloc*sizeof(double));
   }
 
+  // rotate columns of u
+  for ( int ipair = 0; ipair < nploc; ipair++ )
+  {
+    // copy columns of u to temporary array tmpmat in original order
+    if ( jglobal[top[ipair]] >= 0 )
+    {
+      memcpy(&tmpmat[ipair*mloc], ucol[top[ipair]], mloc*sizeof(double));
+    }
+    if ( jglobal[bot[nploc-ipair-1]] >= 0 )
+    {
+      memcpy(&tmpmat[(nploc+ipair)*mloc],ucol[bot[nploc-ipair-1]],
+             mloc*sizeof(double));
+    }
+  }
+  // copy tmpmat back to u
+  memcpy(ucol[0],tmpmat,nloc*mloc*sizeof(double));
+  delete [] tmpmat;
+  
   // compute diagonal values
   for ( int k = 0; k < a.size(); k++ )
   {
