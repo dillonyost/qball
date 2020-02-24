@@ -118,7 +118,6 @@ void MLWFTransform::update(void)
   const int nvec = bm_.nvec();
   for ( int n = 0; n < c.nloc(); n++ )
   {
-    cout << "n = " << n << endl;
     const complex<double>* f = c.cvalptr(n*c.mloc());
     complex<double>* fcx = ccosx.valptr(n*c.mloc());
     complex<double>* fsx = csinx.valptr(n*c.mloc());
